@@ -12,7 +12,9 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // For server components
-export const createServerClient = () => createServerComponentClient()
+import { cookies } from 'next/headers'
+export const createServerClient = () =>
+  createServerComponentClient({ cookies })
 
 // For client components
 export const createBrowserClient = () => createClientComponentClient()

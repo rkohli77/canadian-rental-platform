@@ -3,7 +3,10 @@ import { type User } from '@supabase/auth-helpers-nextjs'
 
 const supabase = createClientComponentClient()
 
-export const signUp = async (email: string, password: string, userData: any) => {
+// Define a type for user metadata
+export type UserMetadata = Record<string, unknown>
+
+export const signUp = async (email: string, password: string, userData: UserMetadata) => {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,

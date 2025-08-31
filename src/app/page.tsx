@@ -63,7 +63,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                Canada's Most
+                Canada&apos;s Most
                 <span className="text-blue-600 block">Trusted Rental</span>
                 Platform
               </h1>
@@ -167,7 +167,7 @@ export default function LandingPage() {
               Why Choose RentConnect?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We've revolutionized the rental process with cutting-edge technology 
+              We&apos;ve revolutionized the rental process with cutting-edge technology 
               and a focus on security, transparency, and user experience.
             </p>
           </div>
@@ -306,8 +306,8 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <p className="text-gray-600 mb-6">
-                  "Found my dream apartment in Toronto within a week! The verification process 
-                  gave me confidence in both the platform and the landlord."
+                  &quot;Found my dream apartment in Toronto within a week! The verification process 
+                  gave me confidence in both the platform and the landlord.&quot;
                 </p>
                 <div className="flex items-center">
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
@@ -329,8 +329,8 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <p className="text-gray-600 mb-6">
-                  "As a landlord, this platform has been a game-changer. Only quality, 
-                  verified applicants and zero time wasters. Highly recommended!"
+                  &quot;As a landlord, this platform has been a game-changer. Only quality, 
+                  verified applicants and zero time wasters. Highly recommended!&quot;
                 </p>
                 <div className="flex items-center">
                   <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
@@ -352,8 +352,8 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <p className="text-gray-600 mb-6">
-                  "The application process was so smooth and professional. Got approved 
-                  the same day and moved into my perfect Calgary home!"
+                  &quot;The application process was so smooth and professional. Got approved 
+                  the same day and moved into my perfect Calgary home!&quot;
                 </p>
                 <div className="flex items-center">
                   <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mr-4">
@@ -405,7 +405,7 @@ export default function LandingPage() {
                 <span className="text-sm bg-red-500 text-white px-2 py-1 rounded-full">CA</span>
               </div>
               <p className="text-gray-300 mb-6 max-w-md">
-                Canada's most trusted rental platform, connecting quality landlords 
+                Canada&apos;s most trusted rental platform, connecting quality landlords 
                 with verified renters across the country.
               </p>
               <div className="flex space-x-4">
