@@ -23,7 +23,7 @@ import {
   CreditCard,
   Shield
 } from 'lucide-react'
-import { supabase } from '@/lib/db'
+// import { supabase } from '@/lib/db'
 
 interface FormData {
   firstName: string
@@ -294,7 +294,6 @@ const handleSubmit = async (e: React.FormEvent) => {
                         className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
                         placeholder="john.doe@example.com"
                       />
-                      console.log("Email before sending:", formData.email, typeof formData.email)
                     </div>
                     {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                   </div>
