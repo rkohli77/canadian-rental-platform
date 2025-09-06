@@ -23,6 +23,7 @@ import {
   CreditCard,
   Shield
 } from 'lucide-react'
+import { supabase } from '@/lib/db'
 
 interface FormData {
   firstName: string
@@ -152,22 +153,35 @@ export default function RegisterPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!validateForm()) return
+ // ...existing code...
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
 
-    setIsSubmitting(true)
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    // Here you would normally send data to your backend
-    console.log('Form submitted:', { ...formData, userType: activeTab })
-    
+  if (!validateForm()) return
+
+  setIsSubmitting(true)
+
+  try {
+      // Insert the form data into the 'users' table in Supabase
+    const response = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...formData, userType: activeTab }),
+    })
+    const result = await response.json()
+    if (!response.ok) {
+      setErrors({ api: result.error || 'Registration failed' })
+    } else {
+      // Success: redirect or show message
+      // router.push('/login') or show a success toast
+    }
+  } catch (error) {
+    setErrors({ api: 'Something went wrong. Please try again.' })
+  } finally {
     setIsSubmitting(false)
-    // Redirect or show success message
   }
+}
+// ...existing code...
 
   const passwordValidation = validatePassword(formData.password)
 
@@ -279,6 +293,7 @@ export default function RegisterPage() {
                         className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
                         placeholder="john.doe@example.com"
                       />
+                      console.log("Email before sending:", formData.email, typeof formData.email)
                     </div>
                     {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                   </div>

@@ -1,6 +1,3 @@
-// Remove PlanetScale setup
-// import { connect } from '@planetscale/database'
-
 // Add Supabase setup
 import { createClient } from '@supabase/supabase-js'
 import { createClientComponentClient, createServerComponentClient } from '@supabase/auth-helpers-nextjs'

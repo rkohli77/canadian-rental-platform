@@ -1,7 +1,7 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { type User } from '@supabase/auth-helpers-nextjs'
 
-const supabase = createClientComponentClient()
+export const supabase = createClientComponentClient()
 
 // Define a type for user metadata
 export type UserMetadata = Record<string, unknown>
@@ -14,7 +14,10 @@ export const signUp = async (email: string, password: string, userData: UserMeta
       data: userData // Additional user metadata
     }
   })
-  return { data, error }
+   const user = data?.user  // This is where the user data comes from
+  return { user, error }
+  // Return the user and error (if any)
+  // return { user: data?.user, error }
 }
 
 export const signIn = async (email: string, password: string) => {
@@ -34,3 +37,5 @@ export const getCurrentUser = async (): Promise<User | null> => {
   const { data: { user } } = await supabase.auth.getUser()
   return user
 }
+
+export { createClientComponentClient }
