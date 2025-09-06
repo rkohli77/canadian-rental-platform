@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getCurrentUser, signUp } from '@/lib/auth'
+import { da } from 'zod/v4/locales'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,17 +31,28 @@ export async function POST(req: NextRequest) {
 
 const { email, password, ...profile } = body
 
-
   // Create user in Supabase Auth
-  const { user, error: signUpError } = await signUp(email, password, profile)
+const { data, error: signUpError } = await supabaseAdmin.auth.signUp({
+  email,
+  password,
+  options: {
+    emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`, // where Supabase redirects after confirmation
+    data: {
+      first_name: firstName,
+      last_name: lastName,
+      phone,
+      user_type: userType,
+    },
+  },
+})
   
-    if (signUpError || !user) {
+    if (signUpError || !data?.user) {
     return NextResponse.json({ error: signUpError?.message }, { status: 400 })
   }
 
   // after creating the user with signUp
 const profileData = {
-  user_id: user.id,
+  user_id: data.user.id,
   first_name: body.firstName,
   last_name: body.lastName,
   email: body.email,
@@ -63,7 +75,7 @@ const { error } = await supabaseAdmin.from('profile').insert([profileData])
 
 if (error) {
   console.error("Profile insert error:", error)
-  return Response.json({ error: error.message }, { status: 400 })
+  return NextResponse.json({ error: error.message }, { status: 400 })
 }
   return NextResponse.json({ success: true }, { status: 200 })
 }

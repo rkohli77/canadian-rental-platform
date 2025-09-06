@@ -1,5 +1,5 @@
 'use client'
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -55,6 +55,7 @@ export default function RegisterPage() {
   const [activeTab, setActiveTab] = useState<'renter' | 'landlord'>('renter')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [showDialog, setShowDialog] = useState(false)
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -162,7 +163,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   setIsSubmitting(true)
 
   try {
-      // Insert the form data into the 'users' table in Supabase
+    // Insert the form data into the 'users' table in Supabase
     const response = await fetch('/api/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -173,7 +174,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       setErrors({ api: result.error || 'Registration failed' })
     } else {
       // Success: redirect or show message
-      // router.push('/login') or show a success toast
+      setShowDialog(true)
     }
   } catch (error) {
     setErrors({ api: 'Something went wrong. Please try again.' })
@@ -607,6 +608,15 @@ const handleSubmit = async (e: React.FormEvent) => {
               </form>
             </CardContent>
           </Card>
+          {/* Success Dialog */}
+\          <Dialog open={showDialog} onOpenChange={setShowDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Registration successful!</DialogTitle>
+              </DialogHeader>
+              <p>Please check your email inbox for a confirmation link before logging in.</p>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
