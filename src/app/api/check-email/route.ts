@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     if (error || !data || !Array.isArray(data.users)) {
       return NextResponse.json({ exists: false }, { status: 200 })
     }
-    const exists = data.users.some((user: any) => user.email?.toLowerCase() === email.toLowerCase())
+    const exists = data.users.some((user) => (user.email || "").toLowerCase() === email.toLowerCase())
     return NextResponse.json({ exists }, { status: 200 })
   } catch (err) {
     return NextResponse.json({ exists: false }, { status: 200 })
