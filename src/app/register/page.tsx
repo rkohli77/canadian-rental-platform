@@ -1,6 +1,9 @@
+// API route for /api/check-email (server-side handler at the bottom)
 'use client'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { useState } from 'react'
+import { NextResponse } from 'next/server'
+// import { supabase } from '@/lib/auth'
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -56,6 +59,9 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [showDialog, setShowDialog] = useState(false)
+  const [dialogMessage, setDialogMessage] = useState<string>('')
+  const [dialogTitle, setDialogTitle] = useState<string>('')
+  const [focusField, setFocusField] = useState<string | null>(null)
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -98,11 +104,45 @@ export default function RegisterPage() {
     return canadianPostalRegex.test(postalCode)
   }
 
-  const handleInputChange = (field: string, value: string) => {
+  // Inline function to check if email exists
+  const checkEmailExists = async (email: string): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/check-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const data = await res.json()
+      return !!data.exists
+    } catch (err) {
+      // Fail safe: block registration if API fails
+      setErrors(prev => ({ ...prev, email: "Unable to validate email. Please try again." }))
+      return true
+    }
+  }
+
+  const handleInputChange = async (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
+    }
+    // Clear focusField if user starts typing in that field
+    if (focusField === field) {
+      setFocusField(null)
+    }
+    // Check for duplicate email if field is email and value passes regex
+    if (field === "email") {
+      if (validateEmail(value)) {
+        const exists = await checkEmailExists(value)
+        if (exists) {
+          setErrors(prev => ({ ...prev, email: "This email is already registered" }))
+          setFocusField("email")
+          setTimeout(() => {
+            emailRef.current?.focus()
+          }, 0)
+        }
+      }
     }
   }
 
@@ -154,37 +194,62 @@ export default function RegisterPage() {
     return Object.keys(newErrors).length === 0
   }
 
- // ...existing code...
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
 
-  if (!validateForm()) return
+    if (!validateForm()) return
 
-  setIsSubmitting(true)
+    setIsSubmitting(true)
 
-  try {
-    // Insert the form data into the 'users' table in Supabase
-    const response = await fetch('/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...formData, userType: activeTab }),
-    })
-    const result = await response.json()
-    if (!response.ok) {
-      setErrors({ api: result.error || 'Registration failed' })
-    } else {
-      // Success: redirect or show message
-      setShowDialog(true)
+    try {
+      // Insert the form data into the 'users' table in Supabase
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, userType: activeTab }),
+      })
+      const result = await response.json()
+      if (!response.ok) {
+        if (result.field) {
+          // Inline error under the specific field
+          setErrors({ [result.field]: result.message })
+        } else if (result.message) {
+          // Fallback generic error
+          setErrors({ api: result.message })
+        } else {
+          setErrors({ api: 'Registration failed. Please try again.' })
+        }
+        if (result.field === "email") {
+          setFocusField("email")
+          setTimeout(() => {
+            emailRef.current?.focus()
+          }, 0)
+        } else if (result.field) {
+          setFocusField(result.field)
+        } else {
+          setFocusField(null)
+        }
+        // Removed dialog for error case
+      } else {
+        // Success
+        setDialogTitle('Registration successful!')
+        setDialogMessage('Please check your email inbox for a confirmation link before logging in.')
+        setFocusField(null)
+        setShowDialog(true)
+      }
+    } catch (error) {
+      setErrors({ api: 'Something went wrong. Please try again.' })
+      // Removed dialog for error case
+      setFocusField(null)
+    } finally {
+      setIsSubmitting(false)
     }
-  } catch (error) {
-    setErrors({ api: 'Something went wrong. Please try again.' })
-  } finally {
-    setIsSubmitting(false)
   }
-}
-// ...existing code...
 
   const passwordValidation = validatePassword(formData.password)
+
+  // Ref for email input
+  const emailRef = useRef<HTMLInputElement>(null)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -293,6 +358,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                         onChange={(e) => handleInputChange('email', e.target.value)}
                         className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
                         placeholder="john.doe@example.com"
+                        ref={emailRef}
                       />
                     </div>
                     {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
@@ -334,6 +400,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                         className={`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
                         placeholder="Create a strong password"
                       />
+                        {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
@@ -607,13 +674,31 @@ const handleSubmit = async (e: React.FormEvent) => {
               </form>
             </CardContent>
           </Card>
-          {/* Success Dialog */}
-\          <Dialog open={showDialog} onOpenChange={setShowDialog}>
-            <DialogContent>
+          {/* Success/Error Dialog */}
+          <Dialog open={showDialog} onOpenChange={setShowDialog}>
+            <DialogContent showCloseButton={true}>
               <DialogHeader>
-                <DialogTitle>Registration successful!</DialogTitle>
+                <DialogTitle>{dialogTitle}</DialogTitle>
               </DialogHeader>
-              <p>Please check your email inbox for a confirmation link before logging in.</p>
+              <p>{dialogMessage}</p>
+              <DialogClose asChild>
+                <Button
+                  className="mt-4 w-full"
+                  onClick={() => {
+                    setShowDialog(false)
+                    if (dialogTitle === 'Registration successful!') {
+                      window.location.href = '/login'
+                    } else if (focusField === 'email') {
+                      // Focus the email input after dialog closes
+                      setTimeout(() => {
+                        emailRef.current?.focus()
+                      }, 0)
+                    }
+                  }}
+                >
+                  Close
+                </Button>
+              </DialogClose>
             </DialogContent>
           </Dialog>
         </div>
