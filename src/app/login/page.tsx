@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -19,6 +20,7 @@ import {
   UserCheck,
   LogIn
 } from 'lucide-react'
+import { supabase } from '@/lib/supabase-browser'
 
 interface LoginData {
   email: string
@@ -30,6 +32,7 @@ interface LoginErrors {
 }
 
 export default function LoginPage() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<'renter' | 'landlord'>('renter')
   const [showPassword, setShowPassword] = useState(false)
   const [loginData, setLoginData] = useState<LoginData>({
@@ -77,18 +80,34 @@ export default function LoginPage() {
     setIsSubmitting(true)
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: loginData.email,
+        password: loginData.password,
+      })
+
+      if (signInError || !authData.user) {
+        throw new Error(signInError?.message || "Invalid login credentials")
+      }
+
+      const { data: profileData, error: profileError } = await supabase
+        .from("profile")
+        .select("first_name")
+        .eq("user_id", authData.user.id)
+        .single()
+
+      if (profileError || !profileData) {
+        throw new Error("Could not fetch user profile")
+      }
+
+      const hours = new Date().getHours()
+      const greeting = hours < 12 ? "Good morning" : hours < 18 ? "Good afternoon" : "Good evening"
+      const userName = profileData.first_name
+
+      router.push(`/dashboard?greeting=${encodeURIComponent(greeting)}&name=${encodeURIComponent(userName)}`)
       
-      // Here you would normally send data to your backend
-      console.log('Login submitted:', { ...loginData, userType: activeTab })
-      
-      // Simulate successful login
-      // In a real app, you'd handle the response and redirect
-      // router.push('/dashboard')
-      
-    } catch (error) {
-      setErrors({ general: 'Invalid email or password. Please try again.' })
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Invalid email or password. Please try again.'
+      setErrors({ general: message })
     } finally {
       setIsSubmitting(false)
     }
@@ -253,6 +272,7 @@ export default function LoginPage() {
                   <div className="flex items-center space-x-2">
                     <LogIn className="h-5 w-5" />
                     <span>Sign In as {activeTab === 'renter' ? 'Renter' : 'Landlord'}</span>
+                    
                   </div>
                 )}
               </Button>
