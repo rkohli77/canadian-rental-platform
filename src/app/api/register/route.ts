@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { da } from 'zod/v4/locales'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
 export async function POST(req: NextRequest) {
